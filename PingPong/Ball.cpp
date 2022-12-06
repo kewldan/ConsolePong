@@ -1,5 +1,17 @@
 #include "Ball.h"
 
+int roundFloat(float v) {
+	return (int)(v + 0.5f - (v < 0));
+}
+
+float random() {
+	return ((float)rand() / RAND_MAX);
+}
+
+float randomn() {
+	return random() * 2.f - 1.f;
+}
+
 Ball::Ball(ScreenBuffer* buff)
 {
 	buffer = buff;
@@ -12,29 +24,18 @@ void Ball::tick(int x1, int x2, float d)
 	if (y < 2 || y > buffer->getHeight()) {
 		vy = -vy;
 	}
-	if (round(x) == 2 && vx < 0) {
+	if (roundFloat(x) == 2 && vx < 0) {
 		if (y > x1 && y < x1 + 5) {
 			vx = -vx;
 		}
 	}
-	if (round(x) == buffer->getWidth() - 2 && vx > 0) {
+	if (roundFloat(x) == buffer->getWidth() - 2 && vx > 0) {
 		if (y > x2 && y < x2 + 5) {
 			vx = -vx;
 		}
 	}
 }
 
-float random() {
-	return ((float) rand() / RAND_MAX);
-}
-
-float randomn() {
-	return random() * 2.f - 1.f;
-}
-
-int round(float v) {
-	return (int)(v + 0.5f - (v < 0));
-}
 
 void Ball::reinit()
 {
@@ -56,5 +57,6 @@ bool Ball::isRigthCollide()
 
 void Ball::draw()
 {
-	buffer->fillRect(round(x), round(y), 1, 1, 'o');
+	buffer->setColor(roundFloat(x), roundFloat(y), 1, BACKGROUND_GREEN | FOREGROUND_RED);
+	buffer->set(roundFloat(x), roundFloat(y), 'o');
 }

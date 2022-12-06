@@ -36,7 +36,8 @@ void PingPongGame::update(float delta)
 void PingPongGame::render()
 {
 	// ### Render ### //
-	buffer->clear();
+	buffer->setColor(0, 0, buffer->getWidth() * buffer->getHeight(), BACKGROUND_GREEN);
+	buffer->clear(' ');
 
 	buffer->fillRect(0, 1, buffer->getWidth(), 1, '_');
 	buffer->fillRect(1, playerY, 1, 5, '#');
@@ -44,9 +45,14 @@ void PingPongGame::render()
 	ball->draw();
 
 	// ### Draw HUD ### //
-	buffer->text(1, 0, std::string("Player 1"));
+	buffer->text(1, 0, "Player 1");
 	buffer->text(buffer->getWidth() - 9, 0, "Player 2");
-	buffer->text(0, std::to_string(player1Score) + std::string(" : ") + std::to_string(player2Score));
+	static char* t = new char[16];
+	strcpy(t, "");
+	_itoa(player1Score, t, 10);
+	strcat(t, " : ");
+	_itoa(player2Score, t + strlen(t), 10);
+	buffer->text(0, t);
 }
 
 void PingPongGame::setBuffer(ScreenBuffer* buff) {

@@ -8,26 +8,26 @@
 class ScreenBuffer
 {
 private:
-	int width = -1;
-	int height = -1;
+	short width = -1;
+	short height = -1;
 	wchar_t* buffer;
+	unsigned short* attributes;
 	bool debug, vsync;
-	HANDLE hConsole;
-	DWORD dwBytesWritten = 0;
+	void* hConsole;
+	unsigned long dwBytesWritten = 0;
 public:
 	ScreenBuffer();
-	void clear();
-	void clear(wchar_t value);
-	void set(int x, int y, wchar_t value);
-	void rect(int x, int y, int w, int h);
-	void fillRect(int x, int y, int w, int h, wchar_t value);
+	void clear(wchar_t value = ' ');
+	void set(short x, short y, wchar_t value);
+	void rect(short x, short y, short w, short h);
+	void fillRect(short x, short y, short w, short h, wchar_t value);
 	wchar_t* getBuffer();
 	void flush();
-	int getWidth();
-	int getHeight();
-	void text(int x, int y, std::string text);
-	void text(int y, std::string text);
-	bool input();
+	short getWidth();
+	short getHeight();
+	void text(short x, short y, const char* text);
+	void text(short y, const char* text);
+	void setColor(short x, short y, int length, int color = 7);
+	void input(bool* shouldClose);
 	void overlay(Profiler* profiler);
 };
-
