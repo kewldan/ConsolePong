@@ -7,12 +7,13 @@
 #include "Ball.h"
 #include "PingPongGame.h"
 #include "TetrisGame.h"
+#include "Donut.h"
 #include "Game.h"
 
 using namespace std;
 
 int selected = 0;
-int gameMode = -1;
+int gameMode = 2;
 int gameModesLength = -1;
 bool shouldClose;
 
@@ -25,8 +26,8 @@ int main()
 	buffer = new ScreenBuffer();
 	profiler = new Profiler(1);
 
-	Game* gameModes[] = { new PingPongGame(), new TetrisGame() };
-	gameModesLength = *(&gameModes + 1) - gameModes;
+	Game* gameModes[] = { new PingPongGame(), new TetrisGame(), new Donut()};
+	gameModesLength = sizeof(gameModes) / sizeof(*gameModes);
 
 	for (int i = 0; i < gameModesLength; i++) {
 		gameModes[i]->setBuffer(buffer);

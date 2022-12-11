@@ -36,23 +36,22 @@ void PingPongGame::update(float delta)
 void PingPongGame::render()
 {
 	// ### Render ### //
-	buffer->setColor(0, 0, buffer->getWidth() * buffer->getHeight(), BACKGROUND_GREEN);
-	buffer->clear(' ');
+	buffer->clear(' ', BACKGROUND_GREEN);
 
-	buffer->fillRect(0, 1, buffer->getWidth(), 1, '_');
-	buffer->fillRect(1, playerY, 1, 5, '#');
-	buffer->fillRect(buffer->getWidth() - 2, player2Y, 1, 5, '#');
+	buffer->fillRect(0, 1, buffer->getWidth(), 1, '_', BACKGROUND_GREEN);
+	buffer->fillRect(1, playerY, 1, 5, '#', BACKGROUND_GREEN);
+	buffer->fillRect(buffer->getWidth() - 2, player2Y, 1, 5, '#', BACKGROUND_GREEN);
 	ball->draw();
 
 	// ### Draw HUD ### //
-	buffer->text(1, 0, "Player 1");
-	buffer->text(buffer->getWidth() - 9, 0, "Player 2");
-	static char* t = new char[16];
+	buffer->text(1, 0, "Player 1", BACKGROUND_GREEN);
+	buffer->text(buffer->getWidth() - 9, 0, "Player 2", BACKGROUND_GREEN);
+	static char* t = new char[24];
 	strcpy(t, "");
 	_itoa(player1Score, t, 10);
 	strcat(t, " : ");
 	_itoa(player2Score, t + strlen(t), 10);
-	buffer->text(0, t);
+	buffer->text(0, t, BACKGROUND_GREEN);
 }
 
 void PingPongGame::setBuffer(ScreenBuffer* buff) {
@@ -61,5 +60,5 @@ void PingPongGame::setBuffer(ScreenBuffer* buff) {
 
 PingPongGame::PingPongGame() : Game("PingPong")
 {
-	
+	ball = nullptr;
 }

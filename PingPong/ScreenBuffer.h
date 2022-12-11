@@ -17,17 +17,16 @@ private:
 	unsigned long dwBytesWritten = 0;
 public:
 	ScreenBuffer();
-	void clear(wchar_t value = ' ');
-	void set(short x, short y, wchar_t value);
-	void rect(short x, short y, short w, short h);
-	void fillRect(short x, short y, short w, short h, wchar_t value);
+	void clear(wchar_t value = ' ', unsigned short color = 7Ui16);
+	void set(short x, short y, wchar_t value, unsigned short color = 7Ui16);
+	void rect(short x, short y, short w, short h, unsigned short color = 7Ui16);
+	void fillRect(short x, short y, short w, short h, wchar_t value, unsigned short color = 7Ui16);
 	wchar_t* getBuffer();
 	void flush();
 	short getWidth();
 	short getHeight();
-	void text(short x, short y, const char* text);
-	void text(short y, const char* text);
-	void setColor(short x, short y, int length, int color = 7);
+	void text(short x, short y, const char* text, unsigned short color = 7Ui16);
+	void text(short y, const char* text, unsigned short color = 7Ui16);
 	void input(bool* shouldClose);
 	void overlay(Profiler* profiler);
 };

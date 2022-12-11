@@ -1,20 +1,24 @@
 #include "Ball.h"
 
-int roundFloat(float v) {
+inline int roundFloat(float v) {
 	return (int)(v + 0.5f - (v < 0));
 }
 
-float random() {
+inline float random() {
 	return ((float)rand() / RAND_MAX);
 }
 
-float randomn() {
+inline float randomn() {
 	return random() * 2.f - 1.f;
 }
 
 Ball::Ball(ScreenBuffer* buff)
 {
 	buffer = buff;
+	vx = 0;
+	vy = 0;
+	x = 0;
+	y = 0;
 }
 
 void Ball::tick(int x1, int x2, float d)
@@ -57,6 +61,5 @@ bool Ball::isRigthCollide()
 
 void Ball::draw()
 {
-	buffer->setColor(roundFloat(x), roundFloat(y), 1, BACKGROUND_GREEN | FOREGROUND_RED);
-	buffer->set(roundFloat(x), roundFloat(y), 'o');
+	buffer->set(roundFloat(x), roundFloat(y), 'o', BACKGROUND_GREEN | FOREGROUND_RED);
 }

@@ -8,48 +8,45 @@ ScreenBuffer::ScreenBuffer()
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
 	width = (int)(csbi.srWindow.Right - csbi.srWindow.Left + 1);
 	height = (int)(csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
-	buffer = new wchar_t[width * height + 1];
+	buffer = new wchar_t[width * height];
 	attributes = new unsigned short[width * height];
-	setColor(0, 0, width * height);
 	hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL); // Буфер экрана
 	SetConsoleActiveScreenBuffer(hConsole); // Настройка консоли
 }
 
-void ScreenBuffer::clear(wchar_t value)
+void ScreenBuffer::clear(wchar_t value, unsigned short color)
 {
-	std::fill_n(buffer, width * height + 1, value);
+	std::fill_n(buffer, width * height, value);
+	std::fill_n(attributes, width * height, color);
 }
 
-void ScreenBuffer::setColor(short x, short y, int length, int color) {
-	std::fill_n(attributes + x + y * width, length, color);
-}
-
-void ScreenBuffer::set(short x, short y, wchar_t value)
+void ScreenBuffer::set(short x, short y, wchar_t value, unsigned short color)
 {
 	if (x >= 0 && x < width && y >= 0 && y < height) {
 		buffer[y * width + x] = value;
+		attributes[y * width + x] = color;
 	}
 }
 
-void ScreenBuffer::rect(short x, short y, short w, short h)
+void ScreenBuffer::rect(short x, short y, short w, short h, unsigned short color)
 {
-	fillRect(x + 1, y, w - 2, 1, '-'); //Top
-	fillRect(x + 1, y + h - 1, w - 2, 1, '-'); //Bottom
+	fillRect(x + 1, y, w - 2, 1, '-', color); //Top
+	fillRect(x + 1, y + h - 1, w - 2, 1, '-', color); //Bottom
 
-	fillRect(x + w - 1, y + 1, 1, h - 2, '|'); //Right
-	fillRect(x, y + 1, 1, h - 2, '|'); //Left
+	fillRect(x + w - 1, y + 1, 1, h - 2, '|', color); //Right
+	fillRect(x, y + 1, 1, h - 2, '|', color); //Left
 
-	set(x, y, '+');
-	set(x + w - 1, y, '+');
-	set(x, y + h - 1, '+');
-	set(x + w - 1, y + h - 1, '+');
+	set(x, y, '+', color);
+	set(x + w - 1, y, '+', color);
+	set(x, y + h - 1, '+', color);
+	set(x + w - 1, y + h - 1, '+', color);
 }
 
-void ScreenBuffer::fillRect(short x, short y, short w, short h, wchar_t value)
+void ScreenBuffer::fillRect(short x, short y, short w, short h, wchar_t value, unsigned short color)
 {
 	for (short ix = x; ix < x + w; ix++) {
 		for (short iy = y; iy < y + h; iy++) {
-			set(ix, iy, value);
+			set(ix, iy, value, color);
 		}
 	}
 }
@@ -62,7 +59,7 @@ wchar_t* ScreenBuffer::getBuffer()
 void ScreenBuffer::flush()
 {
 	WriteConsoleOutputAttribute(hConsole, attributes, width * height, { 0, 0 }, &dwBytesWritten);
-	WriteConsoleOutputCharacter(hConsole, buffer, width * height, { 0,0 }, &dwBytesWritten);
+	WriteConsoleOutputCharacterW(hConsole, buffer, width * height, { 0,0 }, &dwBytesWritten);
 	if (vsync) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(15));
 	}
@@ -78,17 +75,17 @@ short ScreenBuffer::getHeight()
 	return height;
 }
 
-void ScreenBuffer::text(short x, short y, const char* text)
+void ScreenBuffer::text(short x, short y, const char* text, unsigned short color)
 {
 	for (int ix = x; ix < x + strlen(text); ix++) {
-		set(ix, y, text[ix - x]);
+		set(ix, y, text[ix - x], color);
 	}
 }
 
-void ScreenBuffer::text(short y, const char* text)
+void ScreenBuffer::text(short y, const char* text, unsigned short color)
 {
 	int x = width / 2 - strlen(text) / 2;
-	ScreenBuffer::text(x, y, text);
+	ScreenBuffer::text(x, y, text, color);
 }
 
 void ScreenBuffer::input(bool* shouldClose)
