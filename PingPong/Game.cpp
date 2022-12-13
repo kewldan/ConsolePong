@@ -1,6 +1,6 @@
 #include "Game.h"
 
-Game::Game(std::string n)
+Game::Game(const wchar_t* n)
 {
 	name = n;
 }

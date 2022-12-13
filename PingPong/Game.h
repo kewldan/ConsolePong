@@ -5,13 +5,13 @@
 class Game
 {
 public:
-	std::string name;
+	const wchar_t* name;
 	ScreenBuffer* buffer;
 	virtual void setup() = 0;
 	virtual void update(float delta) = 0;
 	virtual void render() = 0;
 	virtual void setBuffer(ScreenBuffer* buff) = 0;
-	Game(std::string n);
+	Game(const wchar_t* n);
 	Game();
 };
 

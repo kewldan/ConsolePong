@@ -44,21 +44,16 @@ void PingPongGame::render()
 	ball->draw();
 
 	// ### Draw HUD ### //
-	buffer->text(1, 0, "Player 1", BACKGROUND_GREEN);
-	buffer->text(buffer->getWidth() - 9, 0, "Player 2", BACKGROUND_GREEN);
-	static char* t = new char[24];
-	strcpy(t, "");
-	_itoa(player1Score, t, 10);
-	strcat(t, " : ");
-	_itoa(player2Score, t + strlen(t), 10);
-	buffer->text(0, t, BACKGROUND_GREEN);
+	buffer->text(1, 0, BACKGROUND_GREEN, L"Player 1");
+	buffer->text(buffer->getWidth() - 9, 0, BACKGROUND_GREEN, L"Player 2");
+	buffer->text(0, BACKGROUND_GREEN, L"%d : %d", player1Score, player2Score);
 }
 
 void PingPongGame::setBuffer(ScreenBuffer* buff) {
 	buffer = buff;
 }
 
-PingPongGame::PingPongGame() : Game("PingPong")
+PingPongGame::PingPongGame() : Game(L"PingPong")
 {
 	ball = nullptr;
 }

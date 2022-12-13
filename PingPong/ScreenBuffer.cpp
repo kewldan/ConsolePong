@@ -75,17 +75,28 @@ short ScreenBuffer::getHeight()
 	return height;
 }
 
-void ScreenBuffer::text(short x, short y, const char* text, unsigned short color)
+void ScreenBuffer::text(short x, short y, unsigned short color, const wchar_t* format, ...)
 {
-	for (int ix = x; ix < x + strlen(text); ix++) {
-		set(ix, y, text[ix - x], color);
-	}
+	static wchar_t* buf = new wchar_t[256];
+	va_list args;
+	va_start(args, format);
+	int i = _vsnwprintf(buf, 256, format, args);
+	va_end(args);
+
+	memcpy(buffer + x + y * width, buf, i * sizeof(wchar_t));
 }
 
-void ScreenBuffer::text(short y, const char* text, unsigned short color)
+void ScreenBuffer::text(short y, unsigned short color, const wchar_t* format, ...)
 {
-	int x = width / 2 - strlen(text) / 2;
-	ScreenBuffer::text(x, y, text, color);
+	static wchar_t* buf = new wchar_t[256];
+	int x = width / 2 - wcslen(format) / 2;
+
+	va_list args;
+	va_start(args, format);
+	int i = _vsnwprintf(buf, 256, format, args);
+	va_end(args);
+
+	memcpy(buffer + x + y * width, buf, i * sizeof(wchar_t));
 }
 
 void ScreenBuffer::input(bool* shouldClose)
@@ -106,13 +117,6 @@ void ScreenBuffer::input(bool* shouldClose)
 void ScreenBuffer::overlay(Profiler* profiler)
 {
 	if (debug) {
-		std::string delta = std::to_string(profiler->getDelta());
-		static char* data = new char[128];
-		strcpy(data, "F");
-		_itoa(profiler->getFps(), data + strlen(data), 10);
-		strcat(data, " D");
-		strcat(data, delta.c_str());
-		strcat(data, "ms");
-		text(15, 0, data);
+		ScreenBuffer::text(15Ui16, 0Ui16, 7Ui16, L"F%d D%.2fms", profiler->getFps(), profiler->getDelta());
 	}
 }

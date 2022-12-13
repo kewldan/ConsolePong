@@ -12,8 +12,8 @@
 
 using namespace std;
 
-int selected = 0;
-int gameMode = 2;
+int selected;
+int gameMode;
 int gameModesLength = -1;
 bool shouldClose;
 
@@ -26,13 +26,17 @@ int main()
 	buffer = new ScreenBuffer();
 	profiler = new Profiler(1);
 
-	Game* gameModes[] = { new PingPongGame(), new TetrisGame(), new Donut()};
+	Game* gameModes[] = { new PingPongGame(), new TetrisGame(), new Donut() };
 	gameModesLength = sizeof(gameModes) / sizeof(*gameModes);
 
 	for (int i = 0; i < gameModesLength; i++) {
 		gameModes[i]->setBuffer(buffer);
 		gameModes[i]->setup();
 	}
+
+EnterPoint:
+	selected = 0;
+	gameMode = -1;
 
 	while (gameMode == -1) {
 		if (GetAsyncKeyState('W') & 1) {
@@ -46,25 +50,24 @@ int main()
 			gameMode = selected;
 		}
 		buffer->clear();
-		buffer->text(buffer->getHeight() / 2 - 5, "Select a game");
-		buffer->text(buffer->getHeight() / 2 + 10, "Press enter to continue");
-		buffer->text(buffer->getHeight() - 2, "by kewldan");
+		buffer->text(buffer->getHeight() / 2 - 5, 7U, L"Select a game");
+		buffer->text(buffer->getHeight() / 2 + 10, 7U, L"Press enter to continue");
+		buffer->text(buffer->getHeight() - 2, 7U, L"by kewldan");
 		buffer->rect(buffer->getWidth() / 2 - 15, buffer->getHeight() / 2 - 1, 30, 2 + gameModesLength);
 		for (int i = 0; i < gameModesLength; i++) {
-			char* t = new char[16];
-			memset(t, 0, 16);
-			t[0] = selected == i ? '>' : ' ';
-			strcat(t, gameModes[i]->name.c_str());
-			buffer->text(buffer->getWidth() / 2 - 6, buffer->getHeight() / 2 + i,t);
+			buffer->text(buffer->getWidth() / 2 - 6, buffer->getHeight() / 2 + i, 7U, L"%s%s", i == selected ? L">" : L" ", gameModes[i]->name);
 		}
 		if (gameModesLength == 0) {
-			buffer->text(3, "NO GAMES LOADED");
+			buffer->text(3, 7U, L"NO GAMES LOADED");
 		}
 		buffer->flush();
 	}
 
 	while (!shouldClose) // Game loop
 	{
+		if (GetAsyncKeyState('X') & 0x8000) {
+			goto EnterPoint;
+		}
 		profiler->update();
 		buffer->input(&shouldClose);
 

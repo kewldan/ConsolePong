@@ -19,7 +19,7 @@ struct vec3 {
 	vec3 operator/(vec3 const& b) { return vec3(x / b.x, y / b.y, z / b.z); }
 
 	float length() {
-		return sqrt(x * x + y * y + z * z);
+		return sqrtf(x * x + y * y + z * z);
 	}
 
 	vec3 normalize() {
@@ -43,7 +43,7 @@ struct vec2 {
 	vec2 operator/(vec2 const& b) { return vec2(x / b.x, y / b.y); }
 
 	float length() {
-		return sqrt(x * x + y * y);
+		return sqrtf(x * x + y * y);
 	}
 
 	vec2 normalize() {
@@ -55,7 +55,7 @@ struct vec2 {
 		float c = ro.dot(ro) - r * r;
 		float h = b * b - c;
 		if (h < 0.f) return vec2(-1.f);
-		h = sqrt(h);
+		h = sqrtf(h);
 		return vec2(-b - h, -b + h);
 	}
 };
@@ -81,8 +81,8 @@ Pixel shader(vec2 uv, vec2 size, unsigned int t) {
 		pos.y += 0.00001f;
 	}
 
-	vec3 light = vec3(sin(t * 0.08f), cos(t * 0.08f), -1.f).normalize();
-	vec2 intersection = vec2::sphere(pos, rd, 1);
+	vec3 light = vec3(sinf(t * 0.08f), cosf(t * 0.08f), -1.f).normalize();
+	vec2 intersection = vec2::sphere(pos, rd, 1.f + sinf(t * 0.1f) * 0.1f);
 	if (intersection.x > 0) {
 		vec3 itPoint = pos + rd * intersection.x;
 		vec3 n = itPoint.normalize();
@@ -131,7 +131,6 @@ void Donut::render()
 		Pixel p = shader(uv, { w, h }, frame);
 		buffer->set(x, y, p.character, p.color);
 	}
-
 	frame++;
 }
 
@@ -139,7 +138,7 @@ void Donut::setBuffer(ScreenBuffer* buff) {
 	buffer = buff;
 }
 
-Donut::Donut() : Game("3D Donut")
+Donut::Donut() : Game(L"3D Donut")
 {
 
 }

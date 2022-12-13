@@ -47,30 +47,22 @@ void TetrisGame::render()
 	buffer->clear();
 	buffer->rect(start_x, 2, 12, 22);
 
-	buffer->text(2, 1, "Statistics");
-	buffer->text(2, 2, "==========");
-	char* t = new char[32];
-	strcpy(t, "Score: ");
-	_itoa(score, t + strlen(t), 10);
-	buffer->text(3, 3, t);
-	strcpy(t, "Rows: ");
-	_itoa(rows, t + strlen(t), 10);
-	buffer->text(3, 4, t);
+	buffer->text(2, 1, 7U, L"Statistics");
+	buffer->text(2, 2, 7U, L"==========");
+	buffer->text(3, 3, 7U, L"Score: %d", score);
+	buffer->text(3, 4, 7U, L"Rows: %d", rows);
 
-	buffer->text(2, 7, "Hotkeys");
-	buffer->text(2, 8, "=======");
-	buffer->text(3, 9, "Quit: Q");
-	buffer->text(3, 10, "Restart: ENTER");
-	buffer->text(3, 11, "Rotate: R");
-	buffer->text(3, 12, "Move: A/D");
-	buffer->text(3, 13, "Drop: SPACE");
+	buffer->text(2, 7, 7U, L"Hotkeys");
+	buffer->text(2, 8, 7U, L"=======");
+	buffer->text(3, 9, 7U, L"Quit: Q");
+	buffer->text(3, 10, 7U, L"Restart: ENTER");
+	buffer->text(3, 11, 7U, L"Rotate: R");
+	buffer->text(3, 12, 7U, L"Move: A/D");
+	buffer->text(3, 13, 7U, L"Drop: SPACE");
 
-	buffer->text(2, 16, "Toggles");
-	buffer->text(2, 17, "=======");
-	strcpy(t, "[");
-	t[strlen(t)] = paused ? 'Y' : ' ';
-	strcat(t, "] Pause: P");
-	buffer->text(3, 18, t);
+	buffer->text(2, 16, 7U, L"Toggles");
+	buffer->text(2, 17, 7U, L"=======");
+	buffer->text(3, 18, 7U, L"[%s] Pause: P", paused ? "Y" : " ");
 
 
 	for (int x = 0; x < 10; x++) {
@@ -105,7 +97,7 @@ void TetrisGame::setBuffer(ScreenBuffer* buff)
 	buffer = buff;
 }
 
-TetrisGame::TetrisGame() : Game("Tetris")
+TetrisGame::TetrisGame() : Game(L"Tetris")
 {
 
 }

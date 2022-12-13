@@ -10,12 +10,12 @@ class ScreenBuffer
 private:
 	short width = -1;
 	short height = -1;
-	wchar_t* buffer;
 	unsigned short* attributes;
 	bool debug, vsync;
 	void* hConsole;
 	unsigned long dwBytesWritten = 0;
 public:
+	wchar_t* buffer;
 	ScreenBuffer();
 	void clear(wchar_t value = ' ', unsigned short color = 7Ui16);
 	void set(short x, short y, wchar_t value, unsigned short color = 7Ui16);
@@ -25,8 +25,8 @@ public:
 	void flush();
 	short getWidth();
 	short getHeight();
-	void text(short x, short y, const char* text, unsigned short color = 7Ui16);
-	void text(short y, const char* text, unsigned short color = 7Ui16);
+	void text(short x, short y, unsigned short color, const wchar_t* format, ...);
+	void text(short y, unsigned short color, const wchar_t* format, ...);
 	void input(bool* shouldClose);
 	void overlay(Profiler* profiler);
 };
