@@ -34,3 +34,19 @@
 x64/
 PingPong/x64/
 .vs/
+
+# Visual Studio / MSBuild outputs
+.vs/
+Debug/
+Release/
+Win32/
+*.user
+*.suo
+*.pdb
+*.ilk
+*.idb
+*.iobj
+*.ipdb
+*.tlog
+*.log
+*.recipe
