@@ -1,11 +1,5 @@
 #include "Shape.h"
 
-Shape::Shape()
-{
-    buffer = new bool[16];
-    std::fill_n(buffer, 17, false);
-}
-
 void Shape::fill(int bitmap)
 {
     int j = 0;
@@ -16,7 +10,10 @@ void Shape::fill(int bitmap)
     }
 }
 
-bool Shape::get(int x, int y)
+bool Shape::get(int x, int y) const
 {
-    return buffer[x + y * 4];
+    if (x < 0 || x >= 4 || y < 0 || y >= 4) {
+        return false;
+    }
+    return buffer[static_cast<size_t>(x) + static_cast<size_t>(y) * 4];
 }

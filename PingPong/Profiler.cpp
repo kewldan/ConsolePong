@@ -2,39 +2,36 @@
 
 void Profiler::update()
 {
-	now = std::chrono::system_clock::now();
-	std::chrono::duration <float> elapsedTime = now - priviousUpdate;
+	const auto now = std::chrono::steady_clock::now();
+	delta = std::chrono::duration<float, std::milli>(now - priviousUpdate).count();
 	priviousUpdate = now;
-	delta = elapsedTime.count() * 1000.f;
 	iterations++;
+	accumulated += delta;
+	// FPS is sampled on the game loop itself: no background thread, no data races.
+	if (accumulated >= samples * 1000.f) {
+		fps = static_cast<int>(iterations * 1000.f / accumulated + 0.5f);
+		iterations = 0;
+		accumulated = 0.f;
+	}
 }
 
-int Profiler::getFps()
+void Profiler::reset()
+{
+	priviousUpdate = std::chrono::steady_clock::now(); // РџРµСЂРµРјРµРЅРЅС‹Рµ РґР»СЏ РїРѕРґСЃС‡РµС‚Р° РїСЂРѕР№РґРµРЅРЅРѕРіРѕ РІСЂРµРјРµРЅРё
+	delta = 0.f;
+}
+
+int Profiler::getFps() const
 {
 	return fps;
 }
 
-float Profiler::getDelta()
+float Profiler::getDelta() const
 {
 	return delta;
 }
 
-Profiler::Profiler(int s)
+Profiler::Profiler(int s) : samples(s > 0 ? s : 1)
 {
-	samples = s;
-	now = std::chrono::system_clock::now(); // Переменные для подсчета
-	priviousUpdate = std::chrono::system_clock::now(); // пройденного времени
-
-	thread = new std::thread([](Profiler* profiler) {
-		while (profiler->active) {
-			profiler->fps = profiler->iterations * (1 / profiler->samples);
-			profiler->iterations = 0;
-			std::this_thread::sleep_for(std::chrono::milliseconds(profiler->samples * 1000));
-		}
-		}, this);
-}
-
-Profiler::~Profiler()
-{
-	active = 0;
+	reset();
 }

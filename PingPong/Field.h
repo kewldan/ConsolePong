@@ -1,15 +1,14 @@
 #pragma once
-#include <iostream>
+#include <vector>
 
 class Field
 {
-	bool* buffer;
+	std::vector<bool> buffer;
 	int width, height;
 public:
 	Field(int w, int h);
 	void clear();
 	void fill();
 	void set(int x, int y, bool v);
-	bool get(int x, int y);
+	bool get(int x, int y) const;
 };
-

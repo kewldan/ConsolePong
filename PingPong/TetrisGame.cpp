@@ -1,48 +1,54 @@
 #include "TetrisGame.h"
+#include <algorithm>
 
 void TetrisGame::setup()
 {
-	field = new Field(10, 20);
+	field = std::make_unique<Field>(10, 20);
 	score = 0;
 	rows = 0;
-	shapes = new Shape[2];
 	shapes[0].fill(0b1100110000000000);
 	shapes[1].fill(0b1000100010001000);
-	thread = new std::thread(&TetrisGame::tick, this);
 }
 
 
 void TetrisGame::update(float delta)
 {
-	if (GetAsyncKeyState('P') & 1) {
-		paused ^= 1;
+	if (keyPressed('P')) {
+		paused = !paused;
 	}
-	if (GetAsyncKeyState(13) & 1) {
+	if (keyPressed(VK_RETURN)) {
 		//Restart
 	}
-	if (GetAsyncKeyState('R') & 1) {
+	if (keyPressed('R')) {
 		//Rotate
 	}
-	if (GetAsyncKeyState('A') & 1) {
-		//Right
+	if (keyPressed('A')) {
+		//Left
 		sX--;
 	}
-	if (GetAsyncKeyState('D') & 1) {
-		//Left
+	if (keyPressed('D')) {
+		//Right
 		sX++;
 	}
-	if (GetAsyncKeyState(VK_SPACE) & 1) {
+	if (keyPressed(VK_SPACE)) {
 		//Drop
 	}
+	sX = std::clamp(sX, -3, 3); // keep the 4x4 piece box inside the 10-wide field
 
 	if (!paused) {
-
+		// The piece falls on the game loop's clock instead of a background thread that
+		// used to start at program launch (and spun at 100% CPU while paused).
+		fallTimer += delta;
+		while (fallTimer >= 1000.f) {
+			fallTimer -= 1000.f;
+			tick();
+		}
 	}
 }
 
 void TetrisGame::render()
 {
-	int start_x = buffer->getWidth() / 2 - 8;
+	const short start_x = buffer->getWidth() / 2 - 8;
 
 	buffer->clear();
 	buffer->rect(start_x, 2, 12, 22);
@@ -62,13 +68,13 @@ void TetrisGame::render()
 
 	buffer->text(2, 16, 7U, L"Toggles");
 	buffer->text(2, 17, 7U, L"=======");
-	buffer->text(3, 18, 7U, L"[%s] Pause: P", paused ? "Y" : " ");
+	buffer->text(3, 18, 7U, L"[%s] Pause: P", paused ? L"Y" : L" "); // %s in a wide format string takes a wide string
 
 
 	for (int x = 0; x < 10; x++) {
 		for (int y = 0; y < 20; y++) {
 			if (field->get(x, y)) {
-				buffer->set(x + start_x + 1, y + 3, '#');
+				buffer->set(static_cast<short>(x + start_x + 1), static_cast<short>(y + 3), '#');
 			}
 		}
 	}
@@ -76,25 +82,18 @@ void TetrisGame::render()
 	for (int x = 0; x < 4; x++) {
 		for (int y = 0; y < 4; y++) {
 			if (shapes[currentShape].get(x, y)) {
-				buffer->set(x + sX + start_x + 4, y + sY + 3, '?');
+				buffer->set(static_cast<short>(x + sX + start_x + 4), static_cast<short>(y + sY + 3), '?');
 			}
 		}
 	}
 }
 
+// Move the current piece one row down (it stops at the bottom of the 20-row field).
 void TetrisGame::tick()
 {
-	while (1) {
-		if (!paused) {
-			sY++;
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		}
+	if (sY < 16) {
+		sY++;
 	}
-}
-
-void TetrisGame::setBuffer(ScreenBuffer* buff)
-{
-	buffer = buff;
 }
 
 TetrisGame::TetrisGame() : Game(L"Tetris")

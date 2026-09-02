@@ -1,82 +1,77 @@
-﻿#include <chrono>
-#include <string>
-#include <regex>
-#include <thread>
+#include <algorithm>
+#include <memory>
+#include <vector>
 
 #include "ScreenBuffer.h"
-#include "Ball.h"
+#include "Profiler.h"
 #include "PingPongGame.h"
 #include "TetrisGame.h"
 #include "Donut.h"
 #include "Game.h"
 
-using namespace std;
-
-int selected;
-int gameMode;
-int gameModesLength = -1;
-bool shouldClose;
-
-ScreenBuffer* buffer;
-Profiler* profiler;
-
-
 int main()
 {
-	buffer = new ScreenBuffer();
-	profiler = new Profiler(1);
+	ScreenBuffer buffer;   // restores the original console on destruction
+	Profiler profiler(1);
 
-	Game* gameModes[] = { new PingPongGame(), new TetrisGame(), new Donut() };
-	gameModesLength = sizeof(gameModes) / sizeof(*gameModes);
+	std::vector<std::unique_ptr<Game>> gameModes;
+	gameModes.push_back(std::make_unique<PingPongGame>());
+	gameModes.push_back(std::make_unique<TetrisGame>());
+	gameModes.push_back(std::make_unique<Donut>());
+	const int gameModesLength = static_cast<int>(gameModes.size());
 
-	for (int i = 0; i < gameModesLength; i++) {
-		gameModes[i]->setBuffer(buffer);
-		gameModes[i]->setup();
+	for (auto& game : gameModes) {
+		game->setBuffer(&buffer);
+		game->setup();
 	}
 
-EnterPoint:
-	selected = 0;
-	gameMode = -1;
+	bool shouldClose = false;
+	while (!shouldClose) {
+		int selected = 0;
+		int gameMode = -1;
 
-	while (gameMode == -1) {
-		if (GetAsyncKeyState('W') & 1) {
-			selected--;
+		while (gameMode == -1 && !shouldClose) { // Menu
+			buffer.input(&shouldClose);
+			if (keyPressed('W')) {
+				selected--;
+			}
+			if (keyPressed('S')) {
+				selected++;
+			}
+			selected = std::clamp(selected, 0, gameModesLength - 1);
+			if (keyPressed(VK_RETURN)) {
+				gameMode = selected;
+			}
+			buffer.clear();
+			buffer.text(buffer.getHeight() / 2 - 5, 7U, L"Select a game");
+			buffer.text(buffer.getHeight() / 2 + 10, 7U, L"Press enter to continue");
+			buffer.text(buffer.getHeight() - 2, 7U, L"by kewldan");
+			buffer.rect(buffer.getWidth() / 2 - 15, buffer.getHeight() / 2 - 1, 30, 2 + gameModesLength);
+			for (int i = 0; i < gameModesLength; i++) {
+				buffer.text(buffer.getWidth() / 2 - 6, buffer.getHeight() / 2 + i, 7U, L"%s%s", i == selected ? L">" : L" ", gameModes[i]->name);
+			}
+			buffer.flush();
 		}
-		if (GetAsyncKeyState('S') & 1) {
-			selected++;
+		if (shouldClose) {
+			break;
 		}
-		selected = clamp(selected, 0, gameModesLength - 1);
-		if (GetAsyncKeyState(13) & 1) {
-			gameMode = selected;
-		}
-		buffer->clear();
-		buffer->text(buffer->getHeight() / 2 - 5, 7U, L"Select a game");
-		buffer->text(buffer->getHeight() / 2 + 10, 7U, L"Press enter to continue");
-		buffer->text(buffer->getHeight() - 2, 7U, L"by kewldan");
-		buffer->rect(buffer->getWidth() / 2 - 15, buffer->getHeight() / 2 - 1, 30, 2 + gameModesLength);
-		for (int i = 0; i < gameModesLength; i++) {
-			buffer->text(buffer->getWidth() / 2 - 6, buffer->getHeight() / 2 + i, 7U, L"%s%s", i == selected ? L">" : L" ", gameModes[i]->name);
-		}
-		if (gameModesLength == 0) {
-			buffer->text(3, 7U, L"NO GAMES LOADED");
-		}
-		buffer->flush();
-	}
 
-	while (!shouldClose) // Game loop
-	{
-		if (GetAsyncKeyState('X') & 0x8000) {
-			goto EnterPoint;
+		profiler.reset(); // otherwise the first frame's delta is the whole time spent in the menu
+		while (!shouldClose) // Game loop
+		{
+			if (keyDown('X')) {
+				break; // back to the menu
+			}
+			profiler.update();
+			buffer.input(&shouldClose);
+
+			gameModes[gameMode]->update(profiler.getDelta());
+
+			gameModes[gameMode]->render();
+
+			buffer.overlay(&profiler);
+			buffer.flush();
 		}
-		profiler->update();
-		buffer->input(&shouldClose);
-
-		gameModes[gameMode]->update(profiler->getDelta());
-
-		gameModes[gameMode]->render();
-
-		buffer->overlay(profiler);
-		buffer->flush();
 	}
 	return 0;
 }

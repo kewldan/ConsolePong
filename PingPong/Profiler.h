@@ -1,19 +1,16 @@
 #pragma once
 #include <chrono>
-#include <thread>
 
 class Profiler
 {
-	std::chrono::system_clock::time_point priviousUpdate, now;
-	std::thread* thread;
-	float delta;
-	int fps, iterations, samples;
-	bool active = true;
+	std::chrono::steady_clock::time_point priviousUpdate;
+	float delta = 0.f;       // last frame time, ms
+	float accumulated = 0.f; // ms since the fps counter was last sampled
+	int fps = 0, iterations = 0, samples = 1;
 public:
 	void update();
-	int getFps();
-	float getDelta();
-	Profiler(int samples);
-	~Profiler();
+	void reset();
+	int getFps() const;
+	float getDelta() const;
+	explicit Profiler(int samples);
 };
-

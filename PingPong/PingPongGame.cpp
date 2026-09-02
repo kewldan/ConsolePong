@@ -1,21 +1,23 @@
 #include "PingPongGame.h"
+#include <algorithm>
+#include <cmath>
 
 void PingPongGame::setup()
 {
-	ball = new Ball(buffer);
+	ball = std::make_unique<Ball>(buffer);
 	ball->reinit();
 }
 
 void PingPongGame::update(float delta)
 {
 	// ### Input handle ### //
-	if (GetAsyncKeyState('W') & 0x8000) {
+	if (keyDown('W')) {
 		playerY--;
 	}
-	if (GetAsyncKeyState('S') & 0x8000) {
+	if (keyDown('S')) {
 		playerY++;
 	}
-	playerY = max(2, min(buffer->getHeight() - 5, playerY));
+	playerY = std::clamp(playerY, 2, buffer->getHeight() - 5);
 
 	// ### Ball update ### //
 	ball->tick(playerY, player2Y, delta);
@@ -29,8 +31,8 @@ void PingPongGame::update(float delta)
 		ball->reinit();
 	}
 
-	player2Y = (int) round(ball->y - 3);
-	player2Y = max(2, min(buffer->getHeight() - 5, player2Y));
+	player2Y = static_cast<int>(std::lround(ball->y - 3));
+	player2Y = std::clamp(player2Y, 2, buffer->getHeight() - 5);
 }
 
 void PingPongGame::render()
@@ -39,8 +41,8 @@ void PingPongGame::render()
 	buffer->clear(' ', BACKGROUND_GREEN);
 
 	buffer->fillRect(0, 1, buffer->getWidth(), 1, '_', BACKGROUND_GREEN);
-	buffer->fillRect(1, playerY, 1, 5, '#', BACKGROUND_GREEN);
-	buffer->fillRect(buffer->getWidth() - 2, player2Y, 1, 5, '#', BACKGROUND_GREEN);
+	buffer->fillRect(1, static_cast<short>(playerY), 1, 5, '#', BACKGROUND_GREEN);
+	buffer->fillRect(buffer->getWidth() - 2, static_cast<short>(player2Y), 1, 5, '#', BACKGROUND_GREEN);
 	ball->draw();
 
 	// ### Draw HUD ### //
@@ -49,11 +51,6 @@ void PingPongGame::render()
 	buffer->text(0, BACKGROUND_GREEN, L"%d : %d", player1Score, player2Score);
 }
 
-void PingPongGame::setBuffer(ScreenBuffer* buff) {
-	buffer = buff;
-}
-
 PingPongGame::PingPongGame() : Game(L"PingPong")
 {
-	ball = nullptr;
 }

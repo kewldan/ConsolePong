@@ -1,5 +1,6 @@
 #pragma once
-#include <thread>
+#include <array>
+#include <memory>
 #include "Game.h"
 #include "Field.h"
 #include "Shape.h"
@@ -8,19 +9,17 @@ class TetrisGame :
     public Game
 {
 private:
-	bool paused;
-	Field* field;
-	Shape* shapes;
+	bool paused = false;
+	std::unique_ptr<Field> field;
+	std::array<Shape, 2> shapes;
 	int currentShape = 1;
 	int sX = 0, sY = 0;
-	int score, rows;
-	std::thread* thread;
+	int score = 0, rows = 0;
+	float fallTimer = 0.f; // ms since the piece last moved down
 public:
-	void setup();
-	void update(float delta);
-	void render();
+	void setup() override;
+	void update(float delta) override;
+	void render() override;
 	void tick();
-	void setBuffer(ScreenBuffer* buff);
 	TetrisGame();
 };
-

@@ -1,12 +1,11 @@
 #pragma once
-#include <iostream>
+#include <array>
 class Shape
 {
 private:
-	bool* buffer;
+	std::array<bool, 16> buffer{}; // 4x4 bitmap, row-major
 public:
-	Shape();
+	Shape() = default;
 	void fill(int bitmap);
-	bool get(int x, int y);
+	bool get(int x, int y) const;
 };
-

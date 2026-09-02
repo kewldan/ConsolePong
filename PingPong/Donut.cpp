@@ -1,4 +1,6 @@
 #include "Donut.h"
+#include <algorithm>
+#include <cmath>
 
 const float characterAspect = 11.f / 24.f;
 
@@ -10,23 +12,23 @@ struct Pixel {
 struct vec3 {
 	float x, y, z;
 
-	vec3(float _x) : x(_x), y(_x), z(_x) {}
+	explicit vec3(float _x) : x(_x), y(_x), z(_x) {}
 	vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
 
-	vec3 operator+(vec3 const& b) { return vec3(x + b.x, y + b.y, z + b.z); }
-	vec3 operator-(vec3 const& b) { return vec3(x - b.x, y - b.y, z - b.z); }
-	vec3 operator*(vec3 const& b) { return vec3(x * b.x, y * b.y, z * b.z); }
-	vec3 operator/(vec3 const& b) { return vec3(x / b.x, y / b.y, z / b.z); }
+	vec3 operator+(vec3 const& b) const { return vec3(x + b.x, y + b.y, z + b.z); }
+	vec3 operator-(vec3 const& b) const { return vec3(x - b.x, y - b.y, z - b.z); }
+	vec3 operator*(vec3 const& b) const { return vec3(x * b.x, y * b.y, z * b.z); }
+	vec3 operator/(vec3 const& b) const { return vec3(x / b.x, y / b.y, z / b.z); }
 
-	float length() {
+	float length() const {
 		return sqrtf(x * x + y * y + z * z);
 	}
 
-	vec3 normalize() {
-		return vec3(x, y, z) / length();
+	vec3 normalize() const {
+		return vec3(x, y, z) / vec3(length());
 	}
 
-	float dot(vec3 const& b) {
+	float dot(vec3 const& b) const {
 		return x * b.x + y * b.y + z * b.z;
 	}
 };
@@ -34,20 +36,20 @@ struct vec3 {
 struct vec2 {
 	float x, y;
 
-	vec2(float _x) : x(_x), y(_x) {}
+	explicit vec2(float _x) : x(_x), y(_x) {}
 	vec2(float _x, float _y) : x(_x), y(_y) {}
 
-	vec2 operator+(vec2 const& b) { return vec2(x + b.x, y + b.y); }
-	vec2 operator-(vec2 const& b) { return vec2(x - b.x, y - b.y); }
-	vec2 operator*(vec2 const& b) { return vec2(x * b.x, y * b.y); }
-	vec2 operator/(vec2 const& b) { return vec2(x / b.x, y / b.y); }
+	vec2 operator+(vec2 const& b) const { return vec2(x + b.x, y + b.y); }
+	vec2 operator-(vec2 const& b) const { return vec2(x - b.x, y - b.y); }
+	vec2 operator*(vec2 const& b) const { return vec2(x * b.x, y * b.y); }
+	vec2 operator/(vec2 const& b) const { return vec2(x / b.x, y / b.y); }
 
-	float length() {
+	float length() const {
 		return sqrtf(x * x + y * y);
 	}
 
-	vec2 normalize() {
-		return vec2(x, y) / length();
+	vec2 normalize() const {
+		return vec2(x, y) / vec2(length());
 	}
 
 	static vec2 sphere(vec3 ro, vec3 rd, float r) {
@@ -61,30 +63,16 @@ struct vec2 {
 };
 
 
-Pixel shader(vec2 uv, vec2 size, unsigned int t) {
+// Per-frame values (light direction, sphere radius, camera) are computed once in render()
+// and passed in; the old version recomputed them and polled the keyboard for every cell.
+static Pixel shader(vec2 uv, vec3 const& pos, vec3 const& light, float radius) {
 	Pixel p = { ' ', 7U };
 
-	static vec3 pos = vec3(-2, 0, 0);
-    vec3 rd = vec3(1, uv.x, uv.y).normalize();
+	vec3 rd = vec3(1, uv.x, uv.y).normalize();
 
-	if (GetAsyncKeyState('W') & 0x8000) {
-		pos.x += 0.00001f;
-	}
-	if (GetAsyncKeyState('S') & 0x8000) {
-		pos.x -= 0.00001f;
-	}
-
-	if (GetAsyncKeyState('A') & 0x8000) {
-		pos.y -= 0.00001f;
-	}
-	if (GetAsyncKeyState('D') & 0x8000) {
-		pos.y += 0.00001f;
-	}
-
-	vec3 light = vec3(sinf(t * 0.08f), cosf(t * 0.08f), -1.f).normalize();
-	vec2 intersection = vec2::sphere(pos, rd, 1.f + sinf(t * 0.1f) * 0.1f);
+	vec2 intersection = vec2::sphere(pos, rd, radius);
 	if (intersection.x > 0) {
-		vec3 itPoint = pos + rd * intersection.x;
+		vec3 itPoint = pos + rd * vec3(intersection.x);
 		vec3 n = itPoint.normalize();
 		float diff = n.dot(light);
 
@@ -112,30 +100,47 @@ void Donut::setup()
 
 void Donut::update(float delta)
 {
+	const float dt = std::min(delta, 50.f);
+	const float speed = 0.002f * dt; // camera units per ms -> 2 units/s regardless of FPS or screen size
 
+	if (keyDown('W')) {
+		camX += speed;
+	}
+	if (keyDown('S')) {
+		camX -= speed;
+	}
+
+	if (keyDown('A')) {
+		camY -= speed;
+	}
+	if (keyDown('D')) {
+		camY += speed;
+	}
+
+	time += dt;
 }
 
 void Donut::render()
 {
-	static unsigned int frame = 0;
 	// ### Render ### //
 	buffer->clear();
 
-	for (unsigned int i = 0; i < buffer->getWidth() * buffer->getHeight(); i++) {
-		unsigned short x = i % buffer->getWidth();
-		unsigned short y = i / buffer->getWidth();
-		float w = buffer->getWidth();
-		float h = buffer->getHeight();
-		vec2 uv(x / (float)w * 2.f - 1.f, y / (float)h * 2.f - 1.f);
-		uv.x *= w / (float)h * characterAspect;
-		Pixel p = shader(uv, { w, h }, frame);
-		buffer->set(x, y, p.character, p.color);
-	}
-	frame++;
-}
+	const float t = time / 16.f; // same animation rate as the old per-frame counter at ~60 fps
+	const vec3 pos(camX, camY, camZ);
+	const vec3 light = vec3(sinf(t * 0.08f), cosf(t * 0.08f), -1.f).normalize();
+	const float radius = 1.f + sinf(t * 0.1f) * 0.1f;
 
-void Donut::setBuffer(ScreenBuffer* buff) {
-	buffer = buff;
+	const int w = buffer->getWidth();
+	const int h = buffer->getHeight();
+	const float aspect = static_cast<float>(w) / static_cast<float>(h) * characterAspect;
+	for (int y = 0; y < h; y++) {
+		for (int x = 0; x < w; x++) {
+			vec2 uv(x / static_cast<float>(w) * 2.f - 1.f, y / static_cast<float>(h) * 2.f - 1.f);
+			uv.x *= aspect;
+			Pixel p = shader(uv, pos, light, radius);
+			buffer->set(static_cast<short>(x), static_cast<short>(y), p.character, p.color);
+		}
+	}
 }
 
 Donut::Donut() : Game(L"3D Donut")

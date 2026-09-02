@@ -7,11 +7,10 @@ private:
 	float vx, vy;
 public:
 	float x, y;
-	Ball(ScreenBuffer* buff);
+	explicit Ball(ScreenBuffer* buff);
 	void tick(int x1, int x2, float d);
-	bool isLeftCollide();
-	bool isRigthCollide();
+	bool isLeftCollide() const;
+	bool isRigthCollide() const;
 	void draw();
 	void reinit();
 };
-
